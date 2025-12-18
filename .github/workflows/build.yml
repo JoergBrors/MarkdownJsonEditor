@@ -1,0 +1,46 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Test publish
+      run: |
+        dotnet publish `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          --output ./test-publish `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:EnableCompressionInSingleFile=true `
+          -p:DebugType=None `
+          -p:DebugSymbols=false
+          
+    - name: Check output
+      shell: pwsh
+      run: |
+        Write-Host "Build successful!"
+        Write-Host "Executable size: $((Get-Item ./test-publish/MarkdownJsonEditor.exe).Length / 1MB) MB"
+        Get-ChildItem ./test-publish

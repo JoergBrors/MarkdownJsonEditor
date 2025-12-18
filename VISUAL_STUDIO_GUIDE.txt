@@ -1,0 +1,30 @@
+VISUAL STUDIO 2026 ANLEITUNG
+=============================
+
+1. ÖFFNEN:
+   - Doppelklick auf MarkdownJsonEditor.sln
+   ODER
+   - Visual Studio öffnen
+   - File -> Open -> Project/Solution
+   - MarkdownJsonEditor.sln auswählen
+
+2. BUILD:
+   - Drücken Sie F5 (Start mit Debugging)
+   - ODER Ctrl+F5 (Start ohne Debugging)
+   - ODER Build -> Build Solution (Ctrl+Shift+B)
+
+3. DEBUGGING:
+   - Breakpoints setzen (F9)
+   - F5 zum Starten
+   - F10 Step Over, F11 Step Into
+
+4. PUBLISH:
+   - Build -> Publish MarkdownJsonEditor
+   - ODER Kommandozeile:
+     dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+
+5. OUTPUT:
+   - Debug: bin\Debug\net8.0-windows\
+   - Release: bin\Release\net8.0-windows\
+   - Publish: bin\Release\net8.0-windows\win-x64\publish\
+

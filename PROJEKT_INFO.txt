@@ -1,0 +1,17 @@
+PROJEKT ERSTELLT
+================
+
+Dateien:
+- Models/JsonContent.cs
+- Services/JsonService.cs
+- Services/ImageService.cs
+- Services/MarkdownService.cs
+- MainWindow.xaml
+- MainWindow.xaml.cs
+- MarkdownJsonEditor.csproj
+- README.md
+- test.json
+
+Build: dotnet build
+Run: dotnet run
+Publish: dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true

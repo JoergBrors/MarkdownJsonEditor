@@ -1,0 +1,136 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggert bei Version Tags wie v1.0.0, v2.1.3, etc.
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Extract version from tag
+      id: get_version
+      shell: pwsh
+      run: |
+        $version = "${{ github.ref_name }}" -replace '^v', ''
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "Version: $version"
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Publish Single-File
+      run: |
+        dotnet publish `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          --output ./publish `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:EnableCompressionInSingleFile=true `
+          -p:DebugType=None `
+          -p:DebugSymbols=false `
+          -p:Version=${{ steps.get_version.outputs.VERSION }}
+          
+    - name: Create release ZIP
+      shell: pwsh
+      run: |
+        $version = "${{ steps.get_version.outputs.VERSION }}"
+        $zipName = "MarkdownJsonEditor-v$version-win-x64.zip"
+        
+        # Erstelle Release-Ordner
+        New-Item -ItemType Directory -Force -Path ./release
+        
+        # Kopiere nur die EXE und wichtige Dateien
+        Copy-Item ./publish/MarkdownJsonEditor.exe ./release/
+        
+        # Kopiere README wenn vorhanden
+        if (Test-Path README.md) {
+          Copy-Item README.md ./release/
+        }
+        
+        # Erstelle ZIP
+        Compress-Archive -Path ./release/* -DestinationPath ./$zipName
+        
+        echo "ZIP_NAME=$zipName" >> $env:GITHUB_OUTPUT
+        echo "Created: $zipName"
+        
+    - name: Get changelog from commit messages
+      id: changelog
+      shell: pwsh
+      run: |
+        $changelog = git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD
+        if ([string]::IsNullOrWhiteSpace($changelog)) {
+          $changelog = "- Initial release"
+        }
+        
+        # Escape für GitHub Output
+        $changelog = $changelog -replace '%', '%25' -replace '\n', '%0A' -replace '\r', '%0D'
+        
+        echo "CHANGELOG=$changelog" >> $env:GITHUB_OUTPUT
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ github.ref_name }}
+        body: |
+          # MarkdownJsonEditor ${{ github.ref_name }}
+          
+          ## ?? Download
+          
+          Windows 64-bit Single-File Executable
+          
+          ## ?? Was ist neu?
+          
+          ${{ steps.changelog.outputs.CHANGELOG }}
+          
+          ## ?? Systemanforderungen
+          
+          - Windows 10/11 (64-bit)
+          - WebView2 Runtime (meist vorinstalliert)
+          
+          ## ?? Installation
+          
+          1. ZIP-Datei herunterladen
+          2. Entpacken
+          3. `MarkdownJsonEditor.exe` ausführen
+          
+          ## ? Features
+          
+          - JavaScript-basierter Markdown-Editor mit Undo/Redo
+          - Live-Preview mit markdown-it
+          - JSON Import/Export
+          - Tab & Enter Unterstützung
+          - Signalfarben (Gelb, Grün, Rot, Blau)
+          - Bildverwaltung
+          - GitHub-Flavored Markdown
+          
+          ---
+          
+          **Vollständige Dokumentation:** [README.md](https://github.com/${{ github.repository }})
+        files: |
+          *.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MarkdownJsonEditor-${{ steps.get_version.outputs.VERSION }}
+        path: ./release/*
