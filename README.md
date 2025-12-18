@@ -2,18 +2,32 @@
 
 Ein professioneller Windows Desktop Editor für Markdown mit JSON-Integration und **markdown-it** Rendering.
 
-## 🎉 Version 2.1 - markdown-it Integration!
+## 🎉 Version 1.0.0 - Production Ready!
 
 ### ✨ Hauptmerkmale
 - **markdown-it JavaScript-basierte Preview** - Identisch mit Edge Browser
 - **JavaScript-basierter Editor** (WebView2) 
 - **Vollständiges Undo/Redo** mit Strg+Z und Strg+Y
-- **Perfekte Tab-Unterstützung** - Tabs werden korrekt eingefügt
-- **Korrekte Zeilenumbrüche** - Enter funktioniert wie erwartet
-- **Live-Vorschau** mit markdown-it von CDN
+- **Automatische Zeilenumbrüche** - Enter fügt 2 Leerzeichen + Newline ein
+- **Perfekte Tab-Unterstützung** - Tabs werden korrekt eingefügt (4 Spaces)
+- **Live-Vorschau** mit markdown-it von CDN (300ms Polling)
 - **Scroll-Preservation** - Preview behält Position beim Editieren
-- **Signalfarben** - Farbige Markierungen
-- JSON Import/Export (einzeiliger, escaped Output)
+- **JSON Import/Export** mit korrektem Escaping
+- **Signalfarben** - Farbige Markierungen (Gelb, Grün, Rot, Blau)
+- **Single-File Distribution** - Nur eine EXE, keine Installation nötig
+
+## 📦 Download
+
+**[⬇️ MarkdownEditor.zip herunterladen](https://github.com/JoergBrors/MarkdownJsonEditor/releases/latest/download/MarkdownEditor.zip)**
+
+Oder gehe zu: [Releases](https://github.com/JoergBrors/MarkdownJsonEditor/releases)
+
+## 🚀 Schnellstart
+
+1. **MarkdownEditor.zip** herunterladen
+2. ZIP entpacken
+3. **MarkdownEditor.exe** ausführen
+4. Sofort loslegen! ✨
 
 ## Features
 
@@ -30,20 +44,21 @@ Ein professioneller Windows Desktop Editor für Markdown mit JSON-Integration un
     html: true,          // HTML-Tags erlauben
     linkify: true,       // URLs automatisch verlinken
     typographer: true,   // Typografische Ersetzungen
-    breaks: true         // Zeilenumbrüche als <br>
+    breaks: false        // Standard Markdown (2 Spaces = hard break)
 }
 ```
 
-### Editor
+### Editor-Features
 - **WebView2-basierter Editor** mit JavaScript
-- Monospace Font (Consolas)
-- Tab-Größe: 4 Zeichen
-- Undo/Redo Stack (bis zu 100 Schritte)
-- Automatisches Encoding/Decoding
+- **Monospace Font** (Consolas)
+- **Tab-Größe**: 4 Zeichen
+- **Undo/Redo Stack**: bis zu 100 Schritte
+- **Automatisches Encoding/Decoding**
+- **Polling-basiertes Update** (300ms) für zuverlässige Preview
 
 ### Tastenkombinationen im Editor
-- **Tab** - Tab-Zeichen einfügen ✅
-- **Enter** - Neue Zeile (CRLF) ✅
+- **Tab** - Tab-Zeichen einfügen (4 Spaces) ✅
+- **Enter** - Neue Zeile mit 2 Leerzeichen + Newline ✅
 - **Ctrl+Z** - Rückgängig ✅
 - **Ctrl+Y** - Wiederholen ✅
 - **Ctrl+Shift+Z** - Wiederholen (Alternative) ✅
@@ -73,18 +88,18 @@ Ein professioneller Windows Desktop Editor für Markdown mit JSON-Integration un
 
 ### File Operations
 - **JSON laden** - Lädt JSON und extrahiert Markdown
-- **Export JSON** - Kopiert JSON-String in Zwischenablage
+- **Export JSON** - Kopiert JSON-String in Zwischenablage (mit korrektem \n Escaping)
 - **Clear** - Löscht aktuellen Inhalt
 - **Undo** - Rückgängig
 - **Redo** - Wiederholen
 
 ## Technologie
-- WPF / .NET 8
-- WebView2 für Editor und Preview
+- **WPF** / .NET 8
+- **WebView2** für Editor und Preview
 - **markdown-it 14.0.0** (via CDN)
 - **markdown-it-mark** (via CDN)
 - **markdown-it-attrs** (via CDN)
-- System.Text.Json für Serialisierung
+- **System.Text.Json** für Serialisierung
 
 ## Architektur
 
@@ -101,15 +116,17 @@ Ein professioneller Windows Desktop Editor für Markdown mit JSON-Integration un
 ```javascript
 - Textarea mit voller Kontrolle
 - Undo/Redo Stack Management
-- Tab-Handling
-- Message Passing zu C#
+- Tab-Handling (4 Spaces)
+- Enter-Handling (2 Spaces + \n)
+- Message Passing zu C# (via Polling)
 - API für Textmanipulation
 ```
 
 ### C# Backend
 ```csharp
 - WebView2 Management
-- JSON Service
+- DispatcherTimer für Polling (300ms)
+- JSON Service mit korrektem Escaping
 - Image Service
 - Editor Service
 - MarkdownService (HTML Wrapper)
@@ -142,7 +159,7 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 3. **Tab & Enter** - Funktionieren perfekt!
 4. **Formatierung** - Nutzen Sie die Toolbar
 5. **Preview prüfen** - Identisch mit Edge-Browser
-6. **Export** - Als JSON-String exportieren
+6. **Export** - Als JSON-String exportieren (mit \n Escaping)
 
 ## Test-Dateien
 
@@ -192,6 +209,15 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 `code` oder ```code block```
 ```
 
+### Hard Line Breaks
+```markdown
+Zeile 1  
+Zeile 2  
+Zeile 3
+
+(2 Leerzeichen am Zeilenende + Enter)
+```
+
 ### Erweitert (markdown-it-mark)
 ```markdown
 ==Gelb markiert==
@@ -210,36 +236,56 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 ```
 
 ## Systemanforderungen
-- Windows 10/11
-- .NET 8 Runtime
-- WebView2 Runtime (meist vorinstalliert)
-- Internetverbindung (für markdown-it CDN beim ersten Laden)
+- **Windows 10/11** (64-bit)
+- **.NET 8 Runtime** (eingebettet in Single-File EXE)
+- **WebView2 Runtime** (meist vorinstalliert)
+- **Internetverbindung** (für markdown-it CDN beim ersten Laden)
+
+## Entwicklung
+
+### GitHub Actions
+Das Projekt nutzt GitHub Actions für automatische Releases:
+
+```bash
+# Release erstellen
+git tag v1.0.0
+git push origin v1.0.0
+
+# Action erstellt automatisch:
+# - Single-File EXE
+# - MarkdownEditor.zip
+# - GitHub Release
+```
+
+Siehe: [RELEASE.md](RELEASE.md) für Details
+
+### Branches
+- **master** - Stable Production Branch
+- **develop** - Development Branch (optional)
 
 ## Changelog
 
-### Version 2.1 (Aktuell) - markdown-it Integration
-- ✅ **NEU**: markdown-it für Preview statt Markdig
-- ✅ **100% Edge-Browser kompatibel**
-- ✅ markdown-it-mark Plugin für `==highlights==`
-- ✅ markdown-it-attrs Plugin für Bild-Attribute
-- ✅ CDN-basiert (keine lokalen Dependencies)
-- ✅ Markdig entfernt (kleinere Binary)
-- ✅ Client-side Rendering (schneller)
-
-### Version 2.0 - JavaScript Editor
-- ✅ WebView2-basierter Editor
+### Version 1.0.0 (2024-12-XX) - Production Ready! 🎉
+- ✅ **Stabile Production Version**
+- ✅ markdown-it für Preview statt Markdig
+- ✅ JavaScript-basierter Editor mit WebView2
 - ✅ Undo/Redo mit Strg+Z / Strg+Y
-- ✅ Perfekte Tab-Unterstützung
-- ✅ Korrekte Zeilenumbrüche
-- ✅ JavaScript API für alle Editier-Operationen
+- ✅ Automatische Zeilenumbrüche (2 Spaces + \n)
+- ✅ Perfekte Tab-Unterstützung (4 Spaces)
+- ✅ Polling-basiertes Update (300ms) statt Events
+- ✅ JSON Export mit korrektem \n Escaping
+- ✅ GitHub Actions für automatische Releases
+- ✅ Single-File EXE Distribution
+- ✅ CDN-basiert (keine lokalen Dependencies)
+- ✅ 100% Edge-Browser kompatibel
+
+### Version 0.0.2 - JavaScript Editor
+- ✅ WebView2-basierter Editor
+- ✅ Undo/Redo mit Stack
+- ✅ Tab & Enter Unterstützung
 - ✅ Message Passing zwischen JS und C#
 
-### Version 1.1 - Verbesserte TextBox
-- Enter-Taste für neue Zeilen
-- Tab-Unterstützung
-- Scroll-Preservation im Preview
-
-### Version 1.0 - Initial Release
+### Version 0.0.1 - Initial Release
 - Basis Markdown Editor
 - JSON Import/Export
 - Live-Vorschau
@@ -258,15 +304,51 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 | Plugin | Version | Zweck |
 |--------|---------|-------|
 | markdown-it | 14.0.0 | Basis Markdown-Parser |
-| markdown-it-mark | 4.0.0 | `==Markierungen==` |
+| markdown-it-mark | 3.0.1 | `==Markierungen==` |
 | markdown-it-attrs | 4.1.6 | `{align=right}` Attribute |
+
+## CI/CD Pipeline
+
+### Automatische Builds
+- Bei jedem Push auf master/develop
+- Pull Requests werden getestet
+- Build-Status sichtbar in Actions Tab
+
+### Automatische Releases
+- Bei Version-Tags (v1.0.0, v2.0.0, etc.)
+- Erstellt Single-File EXE
+- ZIP-Archive
+- GitHub Release mit Changelog
+- 90 Tage Artifact-Retention
 
 ## Links
 
+- **Repository**: [GitHub](https://github.com/JoergBrors/MarkdownJsonEditor)
+- **Releases**: [Download](https://github.com/JoergBrors/MarkdownJsonEditor/releases)
+- **Issues**: [Bug Reports](https://github.com/JoergBrors/MarkdownJsonEditor/issues)
 - [markdown-it GitHub](https://github.com/markdown-it/markdown-it)
 - [markdown-it Demo](https://markdown-it.github.io/)
 - [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
 
+## Lizenz
+
+MIT License - Siehe [LICENSE](LICENSE) für Details
+
 ## Mitwirkende
+
 Entwickelt mit .NET 8, WPF, WebView2 und markdown-it
+
+## Support
+
+Bei Fragen oder Problemen:
+1. [Issue erstellen](https://github.com/JoergBrors/MarkdownJsonEditor/issues)
+2. [Releases prüfen](https://github.com/JoergBrors/MarkdownJsonEditor/releases)
+3. [README.md lesen](README.md)
+4. [RELEASE.md konsultieren](RELEASE.md)
+
+---
+
+**Version**: 1.0.0  
+**Status**: ✅ Production Ready  
+**Letzte Aktualisierung**: Dezember 2024
 
