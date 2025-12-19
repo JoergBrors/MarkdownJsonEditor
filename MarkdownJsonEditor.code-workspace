@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "name": "MarkdownJsonEditor (WPF)",
+      "path": "."
+    },
+    {
+      "name": "VSCodeExtension",
+      "path": "VSCodeExtension"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/out": true,
+      "**/.vscode-test": true
+    }
+  }
+}
