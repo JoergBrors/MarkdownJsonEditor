@@ -194,14 +194,157 @@ namespace MarkdownJsonEditor
             {
                 try
                 {
-                    var content = _jsonService.LoadFromFile(openFileDialog.FileName);
-                    SetEditorText(content);
-                    UpdateStatus($"Geladen: {System.IO.Path.GetFileName(openFileDialog.FileName)}");
+                    // Lade IMMER alle Sections
+                    var sections = _jsonService.LoadSectionsFromFile(openFileDialog.FileName);
+                    
+                    System.Diagnostics.Debug.WriteLine($"[LoadJSON] Found {sections.Count} sections");
+                    foreach (var section in sections)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"  - {section.Title}: {section.Content.Length} chars");
+                    }
+                    
+                    if (sections.Count > 1)
+                    {
+                        // Zeige IMMER Section Navigator bei mehreren Sections
+                        var navigator = new SectionNavigatorWindow(sections);
+                        navigator.Owner = this;
+                        
+                        if (navigator.ShowDialog() == true)
+                        {
+                            if (navigator.SelectedSectionIndex == -2)
+                            {
+                                // Combine all sections
+                                var combined = string.Join("\n\n---\n\n", sections.Select(s => $"<!-- {s.Title} -->\n{s.Content}"));
+                                SetEditorText(combined);
+                                UpdateStatus($"Geladen: Alle {sections.Count} Sections kombiniert");
+                            }
+                            else if (navigator.SelectedSectionIndex >= 0)
+                            {
+                                // Load ONLY selected section
+                                var selectedSection = sections[navigator.SelectedSectionIndex];
+                                SetEditorText(selectedSection.Content);
+                                UpdateStatus($"Geladen: {selectedSection.Title} (Section {navigator.SelectedSectionIndex + 1}/{sections.Count})");
+                            }
+                        }
+                    }
+                    else if (sections.Count == 1)
+                    {
+                        // Nur eine Section, direkt laden
+                        SetEditorText(sections[0].Content);
+                        UpdateStatus($"Geladen: {sections[0].Title}");
+                    }
+                    else
+                    {
+                        // Fallback wenn keine Sections erkannt wurden
+                        var content = _jsonService.LoadFromFile(openFileDialog.FileName);
+                        SetEditorText(content);
+                        UpdateStatus($"Geladen: {System.IO.Path.GetFileName(openFileDialog.FileName)}");
+                    }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Fehler: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Diagnostics.Debug.WriteLine($"LoadJSON Error: {ex}");
                 }
+            }
+        }
+
+        private async void ImportClipboardButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!Clipboard.ContainsText())
+                {
+                    MessageBox.Show("Zwischenablage enthält keinen Text.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var clipboardText = Clipboard.GetText();
+                
+                if (string.IsNullOrWhiteSpace(clipboardText))
+                {
+                    MessageBox.Show("Zwischenablage ist leer.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("=== CLIPBOARD IMPORT ===");
+                System.Diagnostics.Debug.WriteLine($"Clipboard length: {clipboardText.Length}");
+                System.Diagnostics.Debug.WriteLine($"First 100 chars: {clipboardText.Substring(0, Math.Min(100, clipboardText.Length))}");
+                System.Diagnostics.Debug.WriteLine($"Contains literal \\n: {clipboardText.Contains("\\n")}");
+
+                // Verarbeite Zwischenablage-Inhalt
+                var content = _jsonService.LoadFromClipboard(clipboardText);
+                
+                // WICHTIG: Auch wenn es kein JSON ist, normalisiere die Zeilenumbrüche
+                // Das behandelt den Fall wenn jemand einen String mit \n direkt einfügt
+                if (!clipboardText.TrimStart().StartsWith("{") && !clipboardText.TrimStart().StartsWith("["))
+                {
+                    // Kein JSON, aber könnte literale \n enthalten
+                    if (content.Contains("\\n"))
+                    {
+                        System.Diagnostics.Debug.WriteLine("Detected literal \\n in plain text, normalizing...");
+                        content = content.Replace("\\n\\n", "\n\n")
+                                       .Replace("\\n", "\n")
+                                       .Replace("\\t", "\t");
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Extracted content length: {content.Length}");
+                System.Diagnostics.Debug.WriteLine($"After normalization - First 100 chars: {content.Substring(0, Math.Min(100, content.Length))}");
+                System.Diagnostics.Debug.WriteLine("=== END IMPORT ===");
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    MessageBox.Show("Kein gültiger Inhalt in der Zwischenablage gefunden.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // Frage ob bestehender Inhalt ersetzt oder angehängt werden soll
+                var currentText = await GetEditorText();
+                if (!string.IsNullOrWhiteSpace(currentText))
+                {
+                    var result = MessageBox.Show(
+                        "Möchten Sie den bestehenden Inhalt ersetzen?\n\n" +
+                        "Ja = Ersetzen\n" +
+                        "Nein = Anhängen\n" +
+                        "Abbrechen = Abbrechen",
+                        "Import",
+                        MessageBoxButton.YesNoCancel,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Cancel)
+                    {
+                        return;
+                    }
+                    else if (result == MessageBoxResult.No)
+                    {
+                        // Anhängen
+                        content = currentText + "\n\n" + content;
+                    }
+                }
+
+                SetEditorText(content);
+                
+                // Zeige Info über importierten Inhalt
+                var lines = content.Split('\n').Length;
+                var isJson = clipboardText.TrimStart().StartsWith("{") || clipboardText.TrimStart().StartsWith("[");
+                var hadLiteralNewlines = clipboardText.Contains("\\n");
+                var importType = isJson ? "JSON" : (hadLiteralNewlines ? "Text (mit \\n konvertiert)" : "Text");
+                
+                UpdateStatus($"Importiert: {importType}, {lines} Zeilen");
+                MessageBox.Show(
+                    $"Import erfolgreich!\n\n" +
+                    $"Typ: {importType}\n" +
+                    $"Zeichen: {content.Length}\n" +
+                    $"Zeilen: {lines}",
+                    "Import erfolgreich",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fehler beim Import: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Diagnostics.Debug.WriteLine($"Import error: {ex}");
             }
         }
 

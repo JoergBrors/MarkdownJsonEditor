@@ -1,0 +1,6 @@
+{
+  "markdown": "# Test Markdown\n\nDies ist ein Test mit **fett** und *kursiv*.\n\n- Liste 1\n- Liste 2\n\nZweiter Absatz mit `code`.",
+  "en": "This is English content",
+  "de": "Dies ist deutscher Inhalt",
+  "description": "Additional description text"
+}

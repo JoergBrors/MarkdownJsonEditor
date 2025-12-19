@@ -1,0 +1,15 @@
+{
+  "title": "Multi-Section Test",
+  "intro": "Dies ist die Einleitung mit **formatiertem** Text.",
+  "sections": [
+    {
+      "markdown": "## Section 1: Erste Überschrift\n\nDies ist der erste Abschnitt mit:\n\n- Liste 1\n- Liste 2\n\nUnd ein *kursiver* Text."
+    },
+    {
+      "markdown": "## Section 2: Zweite Überschrift\n\nHier ist der zweite Abschnitt:\n\n1. Nummerierte Liste\n2. Zweiter Punkt\n\nMit `code` Beispiel."
+    },
+    {
+      "markdown": "## Section 3: Dritte Überschrift\n\n> Dies ist ein Zitat\n>\n> Mit mehreren Zeilen\n\nUnd normaler Text danach."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "slides": [
+    {
+      "id": "test-slide-1",
+      "title": {
+        "de": "Titel auf Deutsch",
+        "en": "Title in English"
+      },
+      "description": {
+        "de": "## Beschreibung auf Deutsch\n\nDies ist eine **deutsche** Beschreibung mit:\n\n- Liste 1\n- Liste 2\n\n> Ein Zitat",
+        "en": "## Description in English\n\nThis is an **English** description with:\n\n- List 1\n- List 2\n\n> A quote"
+      }
+    },
+    {
+      "id": "test-slide-2",
+      "title": {
+        "de": "Zweiter Titel",
+        "en": "Second Title"
+      },
+      "description": {
+        "de": "## Zweite Beschreibung\n\nMit mehr **Inhalt** und `code`.",
+        "en": "## Second Description\n\nWith more **content** and `code`."
+      }
+    }
+  ]
+}

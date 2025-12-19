@@ -1,0 +1,6 @@
+{
+  "title": "Test Multi-Language",
+  "en": "This is the English version of the text.\n\nIt has **bold** and *italic* formatting.\n\n- List item 1\n- List item 2",
+  "de": "Dies ist die deutsche Version des Textes.\n\nSie hat **fette** und *kursive* Formatierung.\n\n- Listenpunkt 1\n- Listenpunkt 2",
+  "description": "Additional description text that should also appear as a section."
+}
